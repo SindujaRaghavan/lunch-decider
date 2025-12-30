@@ -1,0 +1,21 @@
+# Maven
+target/
+*.log
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# H2 database files (if any)
+*.mv.db
+*.trace.db
