@@ -91,12 +91,14 @@ public class SessionService {
     }
 
     @Transactional
-    public LunchSession endSession(String sessionCode, String endedByUsername) {
+    public void endSession(String sessionCode, String endedByUsername) {
 
         LunchSession session = sessionRepo.findByCode(sessionCode)
                 .orElseThrow(() -> new NotFoundException("Session not found: " + sessionCode));
         // Prevent re-randomization if already ended
-        if (!session.isActive()) return session;
+        if (!session.isActive()) {
+           return;
+        }
 
         if (!session.getCreatedBy().getUsername().equals(endedByUsername)) {
             throw new IllegalStateException("Only the session creator can end the session.");
@@ -105,13 +107,14 @@ public class SessionService {
         List<RestaurantSubmission> submissions = submissionRepo.findBySessionIdWithUserOrderByCreatedAtAsc(session.getId());
         if (submissions.isEmpty()) {
             session.endWithPickedRestaurant(null);
-            return sessionRepo.save(session);
+           sessionRepo.save(session);
+           return;
         }
         // Random selection is performed only when the session transitions
         // from ACTIVE to ENDED. Once ended, this logic is never executed again.
         RestaurantSubmission picked = picker.pickOne(submissions);
         session.endWithPickedRestaurant(picked.getRestaurantName());
-        return sessionRepo.save(session);
+        sessionRepo.save(session);
     }
 
     @Transactional
