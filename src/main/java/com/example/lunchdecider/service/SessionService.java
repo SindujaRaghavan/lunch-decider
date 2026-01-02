@@ -54,13 +54,12 @@ public class SessionService {
         UserAccount user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not allowed / not found: " + username));
 
-        try {
-            if (!participantRepo.existsBySession_IdAndUser_Id(session.getId(), user.getId())) {
-                participantRepo.save(new SessionParticipant(session, user));
-            }
-        } catch (DataIntegrityViolationException e) {
-            // safe for concurrent joins; unique constraint prevents duplicates
+
+        if (participantRepo.existsBySession_IdAndUser_Id(session.getId(), user.getId())) {
+            throw new IllegalStateException("User already joined session: " + sessionCode);
         }
+        participantRepo.save(new SessionParticipant(session, user));
+
     }
 
     @Transactional
